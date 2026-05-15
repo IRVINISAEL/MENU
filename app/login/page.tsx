@@ -8,11 +8,34 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [negocio, setNegocio] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const API = process.env.NEXT_PUBLIC_API_URL;
+
     if (modo === "login") {
-      window.location.href = "/";
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.href = "/";
+      } else {
+        alert(data.mensaje);
+      }
     } else {
-      window.location.href = "/";
+      const res = await fetch(`${API}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, email, password, negocio }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert("¡Cuenta creada! Ahora inicia sesión.");
+        setModo("login");
+      } else {
+        alert(data.mensaje);
+      }
     }
   };
 
