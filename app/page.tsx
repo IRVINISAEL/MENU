@@ -140,11 +140,12 @@ export default function Dashboard() {
             </a>
             <a href="/login">
               <div style={{
-                width: 36, height: 36, borderRadius: "50%",
-                background: "linear-gradient(135deg, #7c3aed, #a855f7)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: "white", fontWeight: 700, fontSize: 14, cursor: "pointer"
-              }}>I</div>
+                  width: 36, height: 36, borderRadius: "50%",
+                  background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "white", fontWeight: 700, fontSize: 14, cursor: "pointer"
+                }}>{usuario?.nombre?.charAt(0).toUpperCase() || "U"}
+              </div>
             </a>
           </div>
         </div>
