@@ -1,7 +1,8 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
 
 const fuentes = [
   "Playfair Display", "Georgia", "Arial", "Montserrat", "Times New Roman",
@@ -70,8 +71,23 @@ export default function Editor() {
   const [colorSubtitulo, setColorSubtitulo] = useState("");
   const [fuenteTitulo, setFuenteTitulo] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+  const guardada = localStorage.getItem("plantilla_cargada");
+  if (guardada) {
+    try {
+      const config = JSON.parse(guardada);
+      if (config.fuenteActiva) setFuenteActiva(config.fuenteActiva);
+      if (config.fondoActivo) setFondoActivo(config.fondoActivo);
+      if (config.tamaño) setTamaño(config.tamaño);
+      if (config.subtitulo) setSubtitulo(config.subtitulo);
+      if (config.secciones) setSecciones(config.secciones);
+      localStorage.removeItem("plantilla_cargada");
+    } catch {}
+  }
+}, []);
   const [textoResaltado, setTextoResaltado] = useState("");
   const [tamañoResaltado, setTamañoResaltado] = useState(24);
+  
 
 
   const editarNombreSeccion = (seccionId: number, valor: string) => {
