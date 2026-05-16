@@ -50,9 +50,29 @@ export default function Editor() {
   const [seccionesData, setSeccionesData] = useState(secciones);
   const [editando, setEditando] = useState<{seccion: number, platillo: number, campo: string} | null>(null);
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     setGuardado(false);
-    setTimeout(() => setGuardado(true), 1000);
+    try {
+      const usuarioData = localStorage.getItem("usuario");
+      const usuario = usuarioData ? JSON.parse(usuarioData) : { id: 1 };
+      const res = await fetch("https://menu-master-backend-production-9bfc.up.railway.app/api/menus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: "Menú Restaurante",
+          estado: "Publicado",
+          data_json: JSON.stringify(seccionesData),
+          user_id: usuario.id || 1,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setGuardado(true);
+        alert("✅ ¡Menú guardado!");
+      }
+    } catch (err) {
+      alert("❌ Error al guardar");
+    }
   };
 
   const handleEditPlatillo = (seccionId: number, platilloIdx: number, campo: string, valor: string) => {
