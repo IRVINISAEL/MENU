@@ -1,17 +1,35 @@
 "use client";
 import { useState } from "react";
 
-const fuentes = ["Playfair Display", "Georgia", "Arial", "Montserrat", "Times New Roman"];
+const fuentes = [
+  "Playfair Display", "Georgia", "Arial", "Montserrat", "Times New Roman",
+  "Lora", "Raleway", "Oswald", "Merriweather", "Poppins",
+  "EB Garamond", "Cinzel", "Dancing Script", "Josefin Sans", "Libre Baskerville"
+];
 const fondos = [
   { nombre: "Clásico", bg: "linear-gradient(135deg, #fefefe, #f8f4ee)", texto: "#2c1810", acento: "#8b4513" },
   { nombre: "Oscuro", bg: "linear-gradient(135deg, #1a1a1a, #2d2d2d)", texto: "#ffffff", acento: "#a855f7" },
   { nombre: "Verde", bg: "linear-gradient(135deg, #f0fdf4, #dcfce7)", texto: "#14532d", acento: "#16a34a" },
   { nombre: "Azul", bg: "linear-gradient(135deg, #eff6ff, #dbeafe)", texto: "#1e3a5f", acento: "#2563eb" },
   { nombre: "Rosa", bg: "linear-gradient(135deg, #fdf2f8, #fce7f3)", texto: "#831843", acento: "#ec4899" },
+  { nombre: "Sepia", bg: "linear-gradient(135deg, #fdf6e3, #f5e6c8)", texto: "#3b2a1a", acento: "#a0522d" },
+  { nombre: "Noche Azul", bg: "linear-gradient(135deg, #0f172a, #1e293b)", texto: "#e2e8f0", acento: "#38bdf8" },
+  { nombre: "Menta", bg: "linear-gradient(135deg, #f0faf5, #c6f0dc)", texto: "#134e2a", acento: "#10b981" },
+  { nombre: "Lavanda", bg: "linear-gradient(135deg, #f5f3ff, #ede9fe)", texto: "#3b0764", acento: "#7c3aed" },
+  { nombre: "Naranja", bg: "linear-gradient(135deg, #fff7ed, #fed7aa)", texto: "#7c2d12", acento: "#ea580c" },
+  { nombre: "Carbón", bg: "linear-gradient(135deg, #18181b, #27272a)", texto: "#fafafa", acento: "#facc15" },
+  { nombre: "Rojo Vino", bg: "linear-gradient(135deg, #fff1f2, #ffe4e6)", texto: "#4c0519", acento: "#be123c" },
 ];
 const API = "https://menu-master-backend-production-9bfc.up.railway.app";
 
-type Platillo = { nombre: string; precio: string; descripcion: string; imagen?: string };
+type Platillo = { 
+  nombre: string; 
+  precio: string; 
+  descripcion: string; 
+  imagen?: string;
+  colorTexto?: string;
+  imagenPos?: { x: number; y: number };
+};
 type Seccion = { id: number; nombre: string; platillos: Platillo[] };
 
 const seccionesIniciales: Seccion[] = [
@@ -45,12 +63,13 @@ export default function Editor() {
   const [herramienta, setHerramienta] = useState("Texto");
   const [mostrarDescripciones, setMostrarDescripciones] = useState(true);
   const [mostrarImagenes, setMostrarImagenes] = useState(true);
+  const [orientacion, setOrientacion] = useState<"vertical" | "horizontal">("vertical");
 
   const editarNombreSeccion = (seccionId: number, valor: string) => {
     setSecciones(prev => prev.map(s => s.id === seccionId ? { ...s, nombre: valor } : s));
   };
 
-  const editarPlatillo = (seccionId: number, idx: number, campo: keyof Platillo, valor: string) => {
+const editarPlatillo = (seccionId: number, idx: number, campo: keyof Platillo, valor: string | { x: number; y: number }) => {
     setSecciones(prev => prev.map(s =>
       s.id === seccionId ? { ...s, platillos: s.platillos.map((p, i) => i === idx ? { ...p, [campo]: valor } : p) } : s
     ));
@@ -232,10 +251,16 @@ export default function Editor() {
           display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 32,
         }}>
           <div style={{
-            width: 440, background: fondoActivo.bg,
-            borderRadius: 4, boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
-            padding: "36px 32px", fontFamily: fuenteActiva,
-          }}>
+  width: orientacion === "vertical" ? 440 : 760,
+  display: orientacion === "horizontal" ? "grid" : "block",
+  gridTemplateColumns: orientacion === "horizontal" ? "repeat(2, 1fr)" : undefined,
+  gap: orientacion === "horizontal" ? 24 : undefined,
+  background: fondoActivo.bg,
+  borderRadius: 4,
+  boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+  padding: "36px 32px",
+  fontFamily: fuenteActiva,
+}}>
             {/* Header */}
             <div style={{ textAlign: "center", marginBottom: 28, paddingBottom: 20, borderBottom: `2px solid ${fondoActivo.acento}` }}>
               <div style={{ fontSize: 10, letterSpacing: 4, color: fondoActivo.acento, marginBottom: 8, opacity: 0.6 }}>✦ ✦ ✦</div>
@@ -299,23 +324,52 @@ export default function Editor() {
                     {mostrarImagenes && (
                       <div style={{ marginBottom: 6 }}>
                         {platillo.imagen ? (
-                          <div style={{ position: "relative" }}>
-                            <img
-                              src={platillo.imagen}
-                              alt={platillo.nombre}
-                              style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 6 }}
-                            />
-                            <button
-                              onClick={() => eliminarImagen(seccion.id, idx)}
-                              style={{
-                                position: "absolute", top: 4, right: 4,
-                                background: "rgba(0,0,0,0.6)", border: "none",
-                                borderRadius: "50%", color: "white", cursor: "pointer",
-                                width: 20, height: 20, fontSize: 10,
-                                display: "flex", alignItems: "center", justifyContent: "center",
+                            <div
+                              style={{ position: "relative", height: 100, overflow: "hidden", borderRadius: 6, cursor: "grab" }}
+                              onMouseDown={(e) => {
+                                const startX = e.clientX;
+                                const startY = e.clientY;
+                                const pos = platillo.imagenPos || { x: 0, y: 0 };
+                                const onMove = (mv: MouseEvent) => {
+                                  editarPlatillo(seccion.id, idx, "imagenPos", {
+                                    x: pos.x + (mv.clientX - startX),
+                                    y: pos.y + (mv.clientY - startY),
+                                  });
+                                };
+                                const onUp = () => {
+                                  window.removeEventListener("mousemove", onMove);
+                                  window.removeEventListener("mouseup", onUp);
+                                };
+                                window.addEventListener("mousemove", onMove);
+                                window.addEventListener("mouseup", onUp);
                               }}
-                            >✕</button>
-                          </div>
+                            >
+                              <img
+                                src={platillo.imagen}
+                                alt={platillo.nombre}
+                                draggable={false}
+                                style={{
+                                  position: "absolute",
+                                  left: platillo.imagenPos?.x ?? 0,
+                                  top: platillo.imagenPos?.y ?? 0,
+                                  width: "100%",
+                                  height: "auto",
+                                  borderRadius: 6,
+                                  userSelect: "none",
+                                  pointerEvents: "none",
+                                }}
+                              />
+                              <button
+                                onClick={(e) => { e.stopPropagation(); eliminarImagen(seccion.id, idx); }}
+                                style={{
+                                  position: "absolute", top: 4, right: 4,
+                                  background: "rgba(0,0,0,0.6)", border: "none",
+                                  borderRadius: "50%", color: "white", cursor: "pointer",
+                                  width: 20, height: 20, fontSize: 10, zIndex: 2,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                }}
+                              >✕</button>
+                            </div>
                         ) : (
                           <label style={{ cursor: "pointer", display: "block" }}>
                             <div style={{
@@ -349,7 +403,7 @@ export default function Editor() {
                           background: "transparent", border: "none",
                           borderBottom: editando?.seccionId === seccion.id && editando?.platilloIdx === idx && editando?.campo === "nombre"
                             ? `1px solid ${fondoActivo.acento}` : "1px solid transparent",
-                          outline: "none", fontSize: 12, color: fondoActivo.texto,
+                          outline: "none", fontSize: 12, color: platillo.colorTexto || fondoActivo.texto,
                           fontFamily: fuenteActiva, flex: 1, cursor: "text",
                         }}
                         onFocus={() => setEditando({ tipo: "platillo", seccionId: seccion.id, platilloIdx: idx, campo: "nombre" })}
@@ -384,12 +438,28 @@ export default function Editor() {
                         onChange={e => { editarPlatillo(seccion.id, idx, "descripcion", e.target.value); setGuardado(false); }}
                         style={{
                           background: "transparent", border: "none", outline: "none",
-                          fontSize: 10, color: fondoActivo.texto, fontFamily: fuenteActiva,
+                          fontSize: 10, color: platillo.colorTexto || fondoActivo.texto, fontFamily: fuenteActiva,
                           width: "100%", opacity: 0.6, cursor: "text", marginTop: 2,
                         }}
                         placeholder="Descripción..."
                       />
                     )}
+
+                    {/* Color de texto */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 5 }}>
+                        <span style={{ fontSize: 9, color: fondoActivo.acento, opacity: 0.6 }}>Color:</span>
+                        {["#000000","#ffffff","#8b4513","#2563eb","#16a34a","#ec4899","#ea580c","#7c3aed","#dc2626","#0891b2"].map(c => (
+                          <button
+                            key={c}
+                            onClick={() => { editarPlatillo(seccion.id, idx, "colorTexto", c); setGuardado(false); }}
+                            style={{
+                              width: 13, height: 13, borderRadius: "50%",
+                              background: c, padding: 0, cursor: "pointer",
+                              border: platillo.colorTexto === c ? "2px solid white" : "1px solid #55555566",
+                            }}
+                          />
+                        ))}
+                      </div>
                   </div>
                 ))}
 
@@ -452,6 +522,12 @@ export default function Editor() {
               padding: "8px", cursor: "pointer", fontSize: 11, textAlign: "left",
             }}>🖼️ {mostrarImagenes ? "✓" : "○"} Imágenes</button>
           </div>
+        <button onClick={() => setOrientacion(o => o === "vertical" ? "horizontal" : "vertical")} style={{
+          background: "#1e1e28", border: "1px solid #2a2a35", borderRadius: 6,
+          color: "#aaa", padding: "4px 8px", cursor: "pointer", fontSize: 11,
+        }} title="Cambiar orientación">
+          {orientacion === "vertical" ? "⇔" : "⇕"}
+        </button>
         </div>
 
         <div>
