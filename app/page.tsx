@@ -1,12 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const menuRecientes = [
-  { nombre: "Menú Cafetería", actualizado: "hace 2 días", emoji: "☕" },
-  { nombre: "Menú Restaurante", actualizado: "hace 3 días", emoji: "🍽️" },
-  { nombre: "Menú Postres", actualizado: "hace 1 semana", emoji: "🍰" },
-];
-
 const navItems = [
   { icon: "⊞", label: "Dashboard", href: "/" },
   { icon: "☰", label: "Mis Menús", href: "/mis-menus" },
@@ -20,36 +14,44 @@ const navItems = [
 
 export default function Dashboard() {
   const [activeNav] = useState("Dashboard");
-  const [usuario, setUsuario] = useState<{nombre: string} | null>(null);
+  const [usuario, setUsuario] = useState<{ nombre: string; plan: string } | null>(null);
+  const [menuRecientes, setMenuRecientes] = useState<{ id: number; nombre: string; estado: string }[]>([]);
 
   useEffect(() => {
+    // Cargar usuario del localStorage
     const data = localStorage.getItem("usuario");
     if (data) setUsuario(JSON.parse(data));
+
+    // Cargar menús reales del backend
+    fetch("https://menu-master-backend-production-9bfc.up.railway.app/api/menus")
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) setMenuRecientes(data.menus.slice(0, 3));
+      })
+      .catch(err => console.error(err));
   }, []);
+
+  const handleCerrarSesion = () => {
+    localStorage.removeItem("usuario");
+    window.location.href = "/login";
+  };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Segoe UI', sans-serif", background: "#0f0f13" }}>
 
       {/* SIDEBAR */}
       <aside style={{
-        width: 220,
-        background: "#16161d",
-        display: "flex",
-        flexDirection: "column",
-        padding: "24px 0",
-        borderRight: "1px solid #2a2a35",
-        position: "fixed",
-        height: "100vh",
-        zIndex: 10,
+        width: 220, background: "#16161d", display: "flex", flexDirection: "column",
+        padding: "24px 0", borderRight: "1px solid #2a2a35",
+        position: "fixed", height: "100vh", zIndex: 10,
       }}>
-        {/* Logo */}
         <div style={{ padding: "0 20px 28px", borderBottom: "1px solid #2a2a35" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
               background: "linear-gradient(135deg, #7c3aed, #a855f7)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "white", fontWeight: "bold", fontSize: 16
+              color: "white", fontWeight: "bold", fontSize: 16,
             }}>M</div>
             <div>
               <div style={{ color: "white", fontWeight: 700, fontSize: 15, lineHeight: 1 }}>MENU</div>
@@ -58,7 +60,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Nav */}
         <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
           {navItems.map((item) => (
             <a key={item.label} href={item.href} style={{ textDecoration: "none" }}>
@@ -71,16 +72,8 @@ export default function Dashboard() {
                 borderLeft: activeNav === item.label ? "2px solid #a855f7" : "2px solid transparent",
                 transition: "all 0.2s",
               }}
-                onMouseEnter={e => {
-                  if (activeNav !== item.label) {
-                    (e.currentTarget as HTMLElement).style.color = "white";
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (activeNav !== item.label) {
-                    (e.currentTarget as HTMLElement).style.color = "#888";
-                  }
-                }}
+                onMouseEnter={e => { if (activeNav !== item.label) (e.currentTarget as HTMLElement).style.color = "white"; }}
+                onMouseLeave={e => { if (activeNav !== item.label) (e.currentTarget as HTMLElement).style.color = "#888"; }}
               >
                 <span style={{ fontSize: 16 }}>{item.icon}</span>
                 {item.label}
@@ -89,14 +82,12 @@ export default function Dashboard() {
           ))}
         </nav>
 
-        {/* Links extra abajo */}
         <div style={{ padding: "12px", borderTop: "1px solid #2a2a35", display: "flex", flexDirection: "column", gap: 4 }}>
           <a href="/landing" style={{ textDecoration: "none" }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "10px 12px", borderRadius: 8,
               color: "#888", cursor: "pointer", fontSize: 13,
-              transition: "color 0.2s",
             }}
               onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = "white")}
               onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "#888")}
@@ -104,23 +95,20 @@ export default function Dashboard() {
               <span>🌐</span> Landing Page
             </div>
           </a>
-          <a href="/login" style={{ textDecoration: "none" }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 12px", borderRadius: 8,
-              color: "#888", cursor: "pointer", fontSize: 13,
-              transition: "color 0.2s",
-            }}
-              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = "white")}
-              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "#888")}
-            >
-              <span>🚪</span> Cerrar sesión
-            </div>
-          </a>
+          <div onClick={handleCerrarSesion} style={{
+            display: "flex", alignItems: "center", gap: 10,
+            padding: "10px 12px", borderRadius: 8,
+            color: "#888", cursor: "pointer", fontSize: 13,
+          }}
+            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = "white")}
+            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = "#888")}
+          >
+            <span>🚪</span> Cerrar sesión
+          </div>
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       <main style={{ marginLeft: 220, flex: 1, padding: 32 }}>
 
         {/* Header */}
@@ -138,25 +126,24 @@ export default function Dashboard() {
             <a href="/analiticas">
               <button style={{ background: "#1e1e28", border: "1px solid #2a2a35", borderRadius: 8, padding: "8px 12px", color: "#888", cursor: "pointer", fontSize: 18 }}>📊</button>
             </a>
-            <a href="/login">
-              <div style={{
-                  width: 36, height: 36, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #7c3aed, #a855f7)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "white", fontWeight: 700, fontSize: 14, cursor: "pointer"
-                }}>{usuario?.nombre?.charAt(0).toUpperCase() || "U"}
-              </div>
-            </a>
+            <div style={{
+              width: 36, height: 36, borderRadius: "50%",
+              background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "white", fontWeight: 700, fontSize: 14, cursor: "pointer",
+            }}>
+              {usuario?.nombre?.charAt(0).toUpperCase() || "U"}
+            </div>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
           {[
-            { label: "Menús creados", value: "12", icon: "📋", href: "/mis-menus" },
-            { label: "Publicados", value: "8", icon: "✅", href: "/mis-menus" },
+            { label: "Menús creados", value: String(menuRecientes.length || 0), icon: "📋", href: "/mis-menus" },
+            { label: "Publicados", value: String(menuRecientes.filter(m => m.estado === "Publicado").length || 0), icon: "✅", href: "/mis-menus" },
             { label: "Vistas este mes", value: "256", icon: "👁️", href: "/analiticas" },
-            { label: "Plan actual", value: "Pro", icon: "⭐", highlight: true, href: "/planes" },
+            { label: "Plan actual", value: usuario?.plan || "Basico", icon: "⭐", highlight: true, href: "/planes" },
           ].map((stat) => (
             <a key={stat.label} href={stat.href} style={{ textDecoration: "none" }}>
               <div style={{
@@ -184,13 +171,13 @@ export default function Dashboard() {
               <button style={{
                 background: "transparent", border: "1px solid #2a2a35",
                 borderRadius: 8, padding: "6px 14px", color: "#a855f7",
-                cursor: "pointer", fontSize: 12, fontWeight: 600
+                cursor: "pointer", fontSize: 12, fontWeight: 600,
               }}>Ver todos</button>
             </a>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-            {menuRecientes.map((menu) => (
-              <a key={menu.nombre} href="/editor" style={{ textDecoration: "none" }}>
+            {menuRecientes.length > 0 ? menuRecientes.map((menu) => (
+              <a key={menu.id} href="/editor" style={{ textDecoration: "none" }}>
                 <div style={{
                   background: "#16161d", border: "1px solid #2a2a35",
                   borderRadius: 10, padding: 16, cursor: "pointer",
@@ -199,20 +186,21 @@ export default function Dashboard() {
                   onMouseEnter={e => (e.currentTarget.style.borderColor = "#a855f7")}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = "#2a2a35")}
                 >
-                  <div style={{ fontSize: 32, marginBottom: 12, textAlign: "center" }}>{menu.emoji}</div>
+                  <div style={{ fontSize: 32, marginBottom: 12, textAlign: "center" }}>🍽️</div>
                   <div style={{ color: "white", fontSize: 13, fontWeight: 600 }}>{menu.nombre}</div>
-                  <div style={{ color: "#555", fontSize: 11, marginTop: 4 }}>Actualizado {menu.actualizado}</div>
+                  <div style={{ color: "#555", fontSize: 11, marginTop: 4 }}>{menu.estado}</div>
                 </div>
               </a>
-            ))}
+            )) : (
+              <div style={{ color: "#555", fontSize: 13, padding: 16 }}>No hay menús aún</div>
+            )}
             <a href="/plantillas" style={{ textDecoration: "none" }}>
               <div style={{
                 background: "#16161d", border: "2px dashed #2a2a35",
                 borderRadius: 10, padding: 16, cursor: "pointer",
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center", gap: 8,
-                minHeight: 100,
-                transition: "border-color 0.2s",
+                minHeight: 100, transition: "border-color 0.2s",
               }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = "#a855f7")}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = "#2a2a35")}
