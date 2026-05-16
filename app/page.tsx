@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const menuRecientes = [
   { nombre: "Menú Cafetería", actualizado: "hace 2 días", emoji: "☕" },
@@ -20,6 +20,12 @@ const navItems = [
 
 export default function Dashboard() {
   const [activeNav] = useState("Dashboard");
+  const [usuario, setUsuario] = useState<{nombre: string} | null>(null);
+
+  useEffect(() => {
+    const data = localStorage.getItem("usuario");
+    if (data) setUsuario(JSON.parse(data));
+  }, []);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Segoe UI', sans-serif", background: "#0f0f13" }}>
@@ -121,7 +127,7 @@ export default function Dashboard() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
           <div>
             <h1 style={{ color: "white", fontSize: 22, fontWeight: 700, margin: 0 }}>
-              ¡Bienvenido, Irvin! 👋
+              ¡Bienvenido, {usuario?.nombre || "Usuario"}! 👋
             </h1>
             <p style={{ color: "#666", fontSize: 13, margin: "4px 0 0" }}>
               Aquí tienes un resumen de tu cuenta
