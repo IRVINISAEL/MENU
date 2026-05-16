@@ -24,8 +24,11 @@ export default function MisMenus() {
   const [activeNav] = useState("Mis Menús");
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("Todos");
+  const [menuViendo, setMenuViendo] = useState<typeof menus[0] | null>(null);
+  const [confirmEliminar, setConfirmEliminar] = useState<number | null>(null);
+  const [listaMenus, setListaMenus] = useState(menus);
 
-  const menusFiltrados = menus.filter((m) => {
+  const menusFiltrados = listaMenus.filter((m) => {
     const coincideBusqueda = m.nombre.toLowerCase().includes(busqueda.toLowerCase());
     const coincideFiltro = filtro === "Todos" || m.estado === filtro;
     return coincideBusqueda && coincideFiltro;
@@ -87,11 +90,14 @@ export default function MisMenus() {
             <h1 style={{ color: "white", fontSize: 22, fontWeight: 700, margin: 0 }}>Mis Menús</h1>
             <p style={{ color: "#666", fontSize: 13, margin: "4px 0 0" }}>Administra todos tus menús</p>
           </div>
-          <button style={{
-            background: "linear-gradient(135deg, #7c3aed, #a855f7)",
-            border: "none", borderRadius: 10, padding: "12px 20px",
-            color: "white", fontWeight: 600, fontSize: 14, cursor: "pointer",
-          }}>
+          <button
+            onClick={() => { localStorage.removeItem("plantilla_cargada"); window.location.href = "/editor"; }}
+            style={{
+              background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+              border: "none", borderRadius: 10, padding: "12px 20px",
+              color: "white", fontWeight: 600, fontSize: 14, cursor: "pointer",
+            }}
+          >
             + Crear nuevo menú
           </button>
         </div>
@@ -176,9 +182,21 @@ export default function MisMenus() {
 
               {/* Acciones */}
               <div style={{ display: "flex", gap: 8 }}>
-                <button style={{ background: "#16161d", border: "1px solid #2a2a35", borderRadius: 6, padding: "6px 10px", color: "#aaa", cursor: "pointer", fontSize: 14 }} title="Ver">👁️</button>
-                <button style={{ background: "#16161d", border: "1px solid #2a2a35", borderRadius: 6, padding: "6px 10px", color: "#aaa", cursor: "pointer", fontSize: 14 }} title="Editar">✏️</button>
-                <button style={{ background: "#16161d", border: "1px solid #2a2a35", borderRadius: 6, padding: "6px 10px", color: "#f87171", cursor: "pointer", fontSize: 14 }} title="Eliminar">🗑️</button>
+                <button
+                  onClick={() => setMenuViendo(menu)}
+                  style={{ background: "#16161d", border: "1px solid #2a2a35", borderRadius: 6, padding: "6px 10px", color: "#aaa", cursor: "pointer", fontSize: 14 }}
+                  title="Ver"
+                >👁️</button>
+               <button
+                  onClick={() => window.location.href = "/editor"}
+                  style={{ background: "#16161d", border: "1px solid #2a2a35", borderRadius: 6, padding: "6px 10px", color: "#a855f7", cursor: "pointer", fontSize: 14 }}
+                  title="Editar"
+                >✏️</button>
+               <button
+                  onClick={() => setConfirmEliminar(menu.id)}
+                  style={{ background: "#16161d", border: "1px solid #2a2a35", borderRadius: 6, padding: "6px 10px", color: "#f87171", cursor: "pointer", fontSize: 14 }}
+                  title="Eliminar"
+                >🗑️</button>
               </div>
             </div>
           ))}
@@ -200,6 +218,56 @@ export default function MisMenus() {
         </div>
 
       </main>
+      {/* MODAL VER MENÚ */}
+{menuViendo && (
+  <div onClick={() => setMenuViendo(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
+    <div onClick={e => e.stopPropagation()} style={{ background: "#1e1e28", border: "1px solid #2a2a35", borderRadius: 16, padding: 28, width: 400, position: "relative" }}>
+      <button onClick={() => setMenuViendo(null)} style={{ position: "absolute", top: 12, right: 12, background: "#16161d", border: "1px solid #2a2a35", borderRadius: "50%", width: 28, height: 28, color: "#aaa", cursor: "pointer", fontSize: 14 }}>✕</button>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+        <div style={{ fontSize: 40 }}>{menuViendo.emoji}</div>
+        <div>
+          <div style={{ color: "white", fontSize: 18, fontWeight: 700 }}>{menuViendo.nombre}</div>
+          <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: menuViendo.estado === "Publicado" ? "#16a34a22" : "#ca8a0422", color: menuViendo.estado === "Publicado" ? "#4ade80" : "#fbbf24", border: `1px solid ${menuViendo.estado === "Publicado" ? "#16a34a44" : "#ca8a0444"}` }}>{menuViendo.estado}</span>
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+        <div style={{ background: "#16161d", borderRadius: 8, padding: 14 }}>
+          <div style={{ color: "#666", fontSize: 11, marginBottom: 4 }}>VISTAS</div>
+          <div style={{ color: "white", fontSize: 22, fontWeight: 700 }}>{menuViendo.vistas}</div>
+        </div>
+        <div style={{ background: "#16161d", borderRadius: 8, padding: 14 }}>
+          <div style={{ color: "#666", fontSize: 11, marginBottom: 4 }}>ÚLTIMA EDICIÓN</div>
+          <div style={{ color: "white", fontSize: 14, fontWeight: 600 }}>{menuViendo.ultimaEdicion}</div>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={() => { setMenuViendo(null); window.location.href = "/editor"; }} style={{ flex: 1, background: "linear-gradient(135deg, #7c3aed, #a855f7)", border: "none", borderRadius: 8, padding: "10px", color: "white", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>✏️ Editar</button>
+        <button onClick={() => setMenuViendo(null)} style={{ flex: 1, background: "transparent", border: "1px solid #2a2a35", borderRadius: 8, padding: "10px", color: "#aaa", cursor: "pointer", fontSize: 13 }}>Cerrar</button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* MODAL CONFIRMAR ELIMINAR */}
+{confirmEliminar !== null && (
+  <div onClick={() => setConfirmEliminar(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
+    <div onClick={e => e.stopPropagation()} style={{ background: "#1e1e28", border: "1px solid #2a2a35", borderRadius: 16, padding: 28, width: 360, textAlign: "center" }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>🗑️</div>
+      <div style={{ color: "white", fontSize: 16, fontWeight: 700, marginBottom: 8 }}>¿Eliminar este menú?</div>
+      <div style={{ color: "#666", fontSize: 13, marginBottom: 24 }}>Esta acción no se puede deshacer.</div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          onClick={() => {
+            setListaMenus(prev => prev.filter(m => m.id !== confirmEliminar));
+            setConfirmEliminar(null);
+          }}
+          style={{ flex: 1, background: "#dc2626", border: "none", borderRadius: 8, padding: "10px", color: "white", fontWeight: 600, cursor: "pointer", fontSize: 13 }}
+        >Sí, eliminar</button>
+        <button onClick={() => setConfirmEliminar(null)} style={{ flex: 1, background: "transparent", border: "1px solid #2a2a35", borderRadius: 8, padding: "10px", color: "#aaa", cursor: "pointer", fontSize: 13 }}>Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
