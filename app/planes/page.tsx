@@ -52,16 +52,19 @@ const planes = [
 ];
 
 // ⚠️ Cambia este número por el tuyo (52 = México)
-const WHATSAPP_NUMBER = "529001234567";
+const WHATSAPP_NUMBER = "522381172308";
+const WHATSAPP_NUMBER_2 = "5212383198822";
 
 export default function Planes() {
   const [activeNav] = useState("Facturación");
 
   const handleWhatsApp = (planNombre: string, planPrecio: number) => {
-    const mensaje = `¡Hola! 👋 Estoy interesado en el plan *${planNombre}* ($${planPrecio}/mes) de Menu Master. Me gustaría más información y activar mi plan.`;
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, "_blank");
-  };
+  const mensaje = `¡Hola! 👋 Estoy interesado en el plan *${planNombre}* ($${planPrecio}/mes) de Menu Master. Me gustaría más información y activar mi plan.`;
+  const url1 = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`;
+  const url2 = `https://wa.me/${WHATSAPP_NUMBER_2}?text=${encodeURIComponent(mensaje)}`;
+  window.open(url1, "_blank");
+  setTimeout(() => window.open(url2, "_blank"), 500);
+};
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Segoe UI', sans-serif", background: "#0f0f13" }}>
