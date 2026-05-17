@@ -20,6 +20,8 @@ export default function Login() {
       const data = await res.json();
       if (data.ok) {
         localStorage.setItem("usuario", JSON.stringify(data.usuario));
+        // Guardar cookie para el middleware
+        document.cookie = `usuario=${data.usuario.id}; path=/; max-age=${60 * 60 * 24 * 7}`;
         window.location.href = "/";
       } else {
         alert(data.mensaje);

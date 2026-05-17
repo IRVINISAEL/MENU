@@ -107,7 +107,14 @@ export default function Planes() {
           ))}
         </nav>
         <div style={{ padding: "16px 12px", borderTop: "1px solid #2a2a35" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", color: "#888", fontSize: 13, cursor: "pointer" }}>
+          <div
+            onClick={() => {
+              localStorage.removeItem("usuario");
+              document.cookie = "usuario=; path=/; max-age=0";
+              window.location.href = "/login";
+            }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", color: "#888", fontSize: 13, cursor: "pointer" }}
+          >
             <span>🚪</span> Cerrar sesión
           </div>
         </div>
