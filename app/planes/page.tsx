@@ -7,9 +7,9 @@ const navItems = [
   { icon: "▦", label: "Plantillas", href: "/plantillas" },
   { icon: "✏️", label: "Mis Diseños", href: "#" },
   { icon: "🖼️", label: "Medios", href: "#" },
-  { icon: "🏢", label: "Mi Negocio", href: "#" },
+  { icon: "🏢", label: "Mi Negocio", href: "/mi-negocio" },
   { icon: "💳", label: "Facturación", href: "/planes" },
-  { icon: "⚙️", label: "Configuración", href: "#" },
+  { icon: "⚙️", label: "Configuración", href: "/configuracion" },
 ];
 
 const planes = [
